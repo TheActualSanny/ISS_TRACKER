@@ -6,8 +6,8 @@ import time
 import psycopg2
 import numpy as np
 import pandas as pd
-from logging_Setup import logg
-from get_Location import get_location
+from logging_setup import logg
+from get_location import get_location
 
 
 dotenv.load_dotenv()
