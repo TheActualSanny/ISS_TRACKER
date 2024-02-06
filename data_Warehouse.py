@@ -1,8 +1,10 @@
-import psycopg2
+'''MANAGES iss_25544_warehouse TABLE'''
+
 import os
-import dotenv
 import json
 import time
+import dotenv
+import psycopg2
 
 
 dotenv.load_dotenv()
@@ -34,20 +36,20 @@ curr.execute('''CREATE TABLE IF NOT EXISTS iss_25544_warehouse (
 
 index = 1
 
-def get_Json(): # Gets the json data from the data lake
+def get_json(): # Gets the json data from the data lake
     with open('raw_data.json', 'r') as f:
         json_data = json.load(f)
         main_data = json_data['iss_data']
         return main_data
 
-def insert_Data(inst): # Inserts a new row into the iss_25544_warehouse table
+def insert_data(inst): # Inserts a new row into the iss_25544_warehouse table
     global index
     curr.execute('''INSERT INTO iss_25544_warehouse VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ''', (index, inst['name'], inst['id'], inst['latitude'], inst['longitude'], inst['altitude'], inst['velocity'], inst['visibility'],
                       inst['footprint'], inst['timestamp'], inst['daynum'], inst['solar_lat'], inst['solar_lon'], inst['units']))
     index += 1
 
-def manage_Warehouse(data): # Checks the data json data and inserts new rows into the iss_25544_warehouse table
+def manage_warehouse(data): # Checks the data json data and inserts new rows into the iss_25544_warehouse table
     global index
     if not data:
         raise ValueError('No data received.')
@@ -59,15 +61,15 @@ def manage_Warehouse(data): # Checks the data json data and inserts new rows int
         for inst in data:
             try:
                 if inst['timestamp'] not in timestamps:
-                    insert_Data(inst)
+                    insert_data(inst)
             except psycopg2.ProgrammingError:
-                insert_Data(inst)
+                insert_data(inst)
 
 
 while True:
     time.sleep(120)
-    data = get_Json()
-    manage_Warehouse(data)
+    data = get_json()
+    manage_warehouse(data)
 
 
 
