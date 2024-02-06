@@ -68,9 +68,6 @@ conn = psycopg2.connect(
 )
 curr = conn.cursor()
 
-print(seconds)
-
-
 
 # Note: if the CHECK_TIME >= 5, on the first iteration, the program will calculate the distance travelled in the first 4 minutes.
 # Main loop
