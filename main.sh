@@ -1,0 +1,1 @@
+python data_lake.py & python data_Warehouse.py & python data_Calculations.py &
