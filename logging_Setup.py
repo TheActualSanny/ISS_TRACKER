@@ -1,3 +1,5 @@
+'''BASIC LOGGING SETUP, USED IN OTHER MODULES'''
+
 import logging
 
 logg = logging.Logger('calculations')
