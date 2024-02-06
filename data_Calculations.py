@@ -1,29 +1,32 @@
-import psycopg2
+'''CALCULATES TRAVELLED DISTANCE, GETS CURRENT LOCATION AND WRITES IT INTO iss_normalized TABLE.'''
+
 import os
-import numpy as np
+import dotenv
 import time
+import psycopg2
+import numpy as np
 import pandas as pd
 from logging_Setup import logg
-from get_Location import Location
-import dotenv
+from get_Location import get_location
+
 
 dotenv.load_dotenv()
 
 #  Calculates the aproximate distance travelled in the last 4-5 minutes
-def calculate_Distance(df):
+def calculate_distance(df):
     avrg_Velocity = round(np.sum(df['velocity']) / df.count()['velocity'], 4)
     time_Difference = df.iloc[-1]['timestamp'] - df.iloc[0]['timestamp']
     return round(avrg_Velocity * time_Difference / 3600, 4) 
 
 # Loads the data from the last 4-5 minutes into the pandas DataFrame
-def get_Data():
+def get_data():
     curr.execute('SELECT * FROM iss_25544_warehouse WHERE timestamp>=((SELECT max(timestamp) FROM iss_25544_warehouse) - %s)', (seconds,))
     data = curr.fetchall()
     df = pd.DataFrame(data=data, columns=columns)
     return df
 
 #  Function which writes into the iss_normalized table
-def write_to_Table(location, distance, row):
+def write_to_table(location, distance, row):
     with conn:
         curr.execute('''CREATE TABLE IF NOT EXISTS iss_normalized (
                 name text,
@@ -73,10 +76,10 @@ print(seconds)
 # Main loop
 while True:
     time.sleep(seconds)
-    df = get_Data()
-    location = Location(df)
-    distance = calculate_Distance(df)
-    write_to_Table(location, distance, df.iloc[-1])
+    df = get_data()
+    location = get_location(df)
+    distance = calculate_distance(df)
+    write_to_table(location, distance, df.iloc[-1])
     logg.info(f'Travelled approx. {distance} kilometers in the last {int(os.getenv('CHECK_TIME')) - 1} - {int(os.getenv('CHECK_TIME'))} minutes. Current Location: {location}')
 
 
