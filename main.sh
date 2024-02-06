@@ -1,1 +1,1 @@
-python data_lake.py & python data_Warehouse.py & python data_Calculations.py &
+python data_lake.py & python data_warehouse.py & python data_calculations.py &
