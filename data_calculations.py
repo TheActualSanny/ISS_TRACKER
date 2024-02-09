@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from logging_setup import logg
 from get_location import get_location
-
+from write_to_table import write
 
 dotenv.load_dotenv()
 
@@ -25,34 +25,6 @@ def get_data():
     df = pd.DataFrame(data=data, columns=columns)
     return df
 
-#  Function which writes into the iss_normalized table
-def write_to_table(location, distance, row):
-    with conn:
-        curr.execute('''CREATE TABLE IF NOT EXISTS iss_normalized (
-                name text,
-                id integer,
-                latitude real,
-                longitude real,
-                altitude real,
-                velocity real,
-                visibility text,
-                footprint real,
-                timestamp integer,
-                daynum real,
-                solar_lat real,
-                solar_lon real,
-                units text,
-                aprox_distance real,
-                curr_location text   
-        ) PARTITION BY LIST(visibility)''')
-
-        curr.execute('''CREATE TABLE IF NOT EXISTS iss_day PARTITION OF iss_normalized FOR VALUES IN ('daylight')''')
-        curr.execute('''CREATE TABLE IF NOT EXISTS iss_eclipsed PARTITION OF iss_normalized FOR VALUES IN ('eclipsed')''')
-        curr.execute('''INSERT INTO iss_normalized VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                    ''', (row['name'], int(row['id']), float(row['latitude']), row['longitude'], row['altitude'], row['velocity'], row['visibility'],
-                        row['footprint'], int(row['timestamp']), row['daynum'], row['solar_lat'], row['solar_lon'], row['units'],
-                        float(distance), str(location)))
-
 
 
 #  Setup: Connecting to the database and setting up columns
@@ -67,16 +39,16 @@ conn = psycopg2.connect(
     database = os.getenv('DB')
 )
 curr = conn.cursor()
+key = 1
 
-
-# Note: if the CHECK_TIME >= 5, on the first iteration, the program will calculate the distance travelled in the first 4 minutes.
+# Note: if the CHECK_TIME > 4, on the first iteration, the program will calculate the distance travelled in the first 4 minutes.
 # Main loop
 while True:
     time.sleep(seconds)
     df = get_data()
     location = get_location(df)
     distance = calculate_distance(df)
-    write_to_table(location, distance, df.iloc[-1])
+    write(location, distance, df.iloc[-1], conn, curr)
     logg.info(f'Travelled approx. {distance} kilometers in the last {int(os.getenv('CHECK_TIME')) - 1} - {int(os.getenv('CHECK_TIME'))} minutes. Current Location: {location}')
 
 
