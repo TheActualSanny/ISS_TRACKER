@@ -12,14 +12,16 @@ from write_to_table import write
 
 dotenv.load_dotenv()
 
-#  Calculates the aproximate distance travelled in the last 4-5 minutes
+
 def calculate_distance(df):
+    '''Calculates the aproximate distance travelled in the last 4-5 minutes'''
     avrg_Velocity = round(np.sum(df['velocity']) / df.count()['velocity'], 4)
     time_Difference = df.iloc[-1]['timestamp'] - df.iloc[0]['timestamp']
     return round(avrg_Velocity * time_Difference / 3600, 4) 
 
-# Loads the data from the last 4-5 minutes into the pandas DataFrame
+
 def get_data():
+    '''Loads the data from the last 4-5 minutes into the pandas DataFrame'''
     curr.execute('SELECT * FROM iss_25544_warehouse WHERE timestamp>=((SELECT max(timestamp) FROM iss_25544_warehouse) - %s)', (seconds,))
     data = curr.fetchall()
     df = pd.DataFrame(data=data, columns=columns)
